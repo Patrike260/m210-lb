@@ -9,11 +9,14 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95enptZ2Zja3l4bnFwb3h3enh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQwNzgwMDgsImV4cCI6MjA0OTY1NDAwOH0.sMq01ep7vZepgGuLP-uns83K0TnDNJhInmbJ4GTt3v0'
 );
 
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [mediaData, setMediaData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false); // Dark Mode Zustand
+  const [searchTerm, setSearchTerm] = useState(''); // Suchbegriff
   const [newMedia, setNewMedia] = useState({
     name: '',
     kategorie: 'Game',
@@ -24,6 +27,7 @@ export default function App() {
   const [sortOption, setSortOption] = useState('');
 
   useEffect(() => {
+    // Session überprüfen und Daten laden
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -43,6 +47,22 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Dark Mode initial aktivieren, falls in localStorage gespeichert
+  useEffect(() => {
+    const savedMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedMode);
+    document.body.classList.toggle('dark-mode', savedMode);
+  }, []);
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      document.body.classList.toggle('dark-mode', newMode);
+      localStorage.setItem('darkMode', newMode); // Zustand speichern
+      return newMode;
+    });
+  };
+
   const fetchMediaData = async (userId) => {
     setLoading(true);
     const { data, error } = await supabase
@@ -54,7 +74,7 @@ export default function App() {
       console.error('Fehler beim Laden der Media-Daten:', error.message);
     } else {
       setMediaData(data);
-      setFilteredData(data); // Initiale Filterdaten setzen
+      setFilteredData(data);
     }
     setLoading(false);
   };
@@ -89,13 +109,19 @@ export default function App() {
     }
   };
 
-  // Filter- und Sortierlogik
   const filterAndSortData = () => {
     let data = [...mediaData];
 
-    // Kategorie filtern
+    // Nach Kategorie filtern
     if (filterKategorie) {
       data = data.filter((item) => item.kategorie === filterKategorie);
+    }
+
+    // Nach Name filtern
+    if (searchTerm) {
+      data = data.filter((item) =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     // Sortieren
@@ -110,6 +136,11 @@ export default function App() {
     }
 
     setFilteredData(data);
+  };
+  const handleRefresh = () => {
+    if (session) {
+      fetchMediaData(session.user.id);
+    }
   };
 
   useEffect(() => {
@@ -127,104 +158,130 @@ export default function App() {
   } else {
     return (
       <div>
-        <h1>Media Daten</h1>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
+
+          <div>
+            <button onClick={toggleDarkMode} style={{ padding: '0.5rem 1rem' }}>
+              {darkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
+          </div>
+        </header>
         <div>
-          <h2>Neuen Eintrag hinzufügen</h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              addMedia();
-            }}
-          >
+          <h1>Media Daten</h1>
+          <div>
+            <h2>Neuen Eintrag hinzufügen</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                addMedia();
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Name"
+                value={newMedia.name}
+                onChange={(e) => setNewMedia({ ...newMedia, name: e.target.value })}
+                required
+              />
+              <select
+                value={newMedia.kategorie}
+                onChange={(e) => setNewMedia({ ...newMedia, kategorie: e.target.value })}
+                required
+              >
+                <option value="Game">Game</option>
+                <option value="Serie">Serie</option>
+                <option value="Film">Film</option>
+                <option value="Buch">Buch</option>
+                <option value="Music">Music</option>
+              </select>
+              <input
+                type="date"
+                placeholder="Datum"
+                value={newMedia.datum}
+                onChange={(e) => setNewMedia({ ...newMedia, datum: e.target.value })}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Bewertung (1-10)"
+                value={newMedia.bewertung}
+                onChange={(e) => setNewMedia({ ...newMedia, bewertung: e.target.value })}
+                min="1"
+                max="10"
+                required
+              />
+              <button type="submit">Hinzufügen</button>
+            </form>
+          </div>
+
+
+          <div>
+            <h2>Filter, Sortierung und Suche</h2>
+            {/* Suchfeld */}
             <input
               type="text"
-              placeholder="Name"
-              value={newMedia.name}
-              onChange={(e) => setNewMedia({ ...newMedia, name: e.target.value })}
-              required
+              placeholder="Nach Namen suchen"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ marginBottom: '1rem', padding: '0.5rem', width: '100%' }}
             />
+            <button onClick={handleRefresh} style={{ padding: '0.5rem 1rem', marginRight: '0.5rem' }}>
+              Aktualisieren
+            </button>
+            {/* Filter nach Kategorie */}
             <select
-              value={newMedia.kategorie}
-              onChange={(e) => setNewMedia({ ...newMedia, kategorie: e.target.value })}
-              required
+              value={filterKategorie}
+              onChange={(e) => setFilterKategorie(e.target.value)}
             >
+              <option value="">Alle Kategorien</option>
               <option value="Game">Game</option>
               <option value="Serie">Serie</option>
               <option value="Film">Film</option>
               <option value="Buch">Buch</option>
+              <option value="Music">Music</option>
             </select>
-            <input
-              type="date"
-              placeholder="Datum"
-              value={newMedia.datum}
-              onChange={(e) => setNewMedia({ ...newMedia, datum: e.target.value })}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Bewertung (1-10)"
-              value={newMedia.bewertung}
-              onChange={(e) => setNewMedia({ ...newMedia, bewertung: e.target.value })}
-              min="1"
-              max="10"
-              required
-            />
-            <button type="submit">Hinzufügen</button>
-          </form>
-        </div>
+            {/* Sortieren */}
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              <option value="">Keine Sortierung</option>
+              <option value="datum_absteigend">Datum (Neuste zuerst)</option>
+              <option value="datum_aufsteigend">Datum (Älteste zuerst)</option>
+              <option value="bewertung_absteigend">Bewertung (Absteigend)</option>
+              <option value="bewertung_aufsteigend">Bewertung (Aufsteigend)</option>
+            </select>
+          </div>
 
-        {/* Filter- und Sortieroptionen */}
-        <div>
-          <h2>Filter und Sortierung</h2>
-          <select
-            value={filterKategorie}
-            onChange={(e) => setFilterKategorie(e.target.value)}
-          >
-            <option value="">Alle Kategorien</option>
-            <option value="Game">Game</option>
-            <option value="Serie">Serie</option>
-            <option value="Film">Film</option>
-            <option value="Buch">Buch</option>
-          </select>
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
-            <option value="">Keine Sortierung</option>
-            <option value="datum_absteigend">Datum (Neuste zuerst)</option>
-            <option value="datum_aufsteigend">Datum (Älteste zuerst)</option>
-            <option value="bewertung_absteigend">Bewertung (Absteigend)</option>
-            <option value="bewertung_aufsteigend">Bewertung (Aufsteigend)</option>
-          </select>
-        </div>
 
-        {/* Tabelle */}
-        {loading ? (
-          <p>Lade Daten...</p>
-        ) : filteredData.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Kategorie</th>
-                <th>Datum</th>
-                <th>Bewertung</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>{item.kategorie}</td>
-                  <td>{new Date(item.datum).toLocaleDateString()}</td>
-                  <td>{item.bewertung}</td>
+          {/* Tabelle */}
+          {loading ? (
+            <p>Lade Daten...</p>
+          ) : filteredData.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Kategorie</th>
+                  <th>Datum</th>
+                  <th>Bewertung</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>Keine Media-Daten gefunden.</p>
-        )}
+              </thead>
+              <tbody>
+                {filteredData.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.name}</td>
+                    <td>{item.kategorie}</td>
+                    <td>{new Date(item.datum).toLocaleDateString()}</td>
+                    <td>{item.bewertung}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Keine Media-Daten gefunden.</p>
+          )}
+        </div>
       </div>
     );
   }

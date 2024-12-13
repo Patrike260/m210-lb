@@ -84,6 +84,14 @@ Beim CSS habe ich es mir einfach gemacht und hab ChatGPT gefragt ob er mir ein h
 
 Danach habe ich mithilfe von Kunga die Brach wieder ins main gemarcht.
 
+Nachdem ich es bereits abgegeben habe, habe ich es zuhause noch Gehostet. http//:mymediabiblo.ddns.net
+
+Zusätlich habe ich ein paar Kollegen den zugag gegeben und ihnen Account hergestellt. Daraufhin habe ich Feedback bekommen wie z.B. es giebt keine Kategorie Musik.
+
+Dan habe ich mich nochmals darangesetzt. Habe einen neuen Branch gemacht und Los!
+
+Durchdass es in meinem Zimmer zimlich dunkel ist, hat mich der weisse Hindergrund sehr gestört. Und so bin ich auf die Idee gekommen ein Darkmodus einzubinden. Zusätzlich habe ich auch noch die mäglichkeit gegen nach Namen zu suchen. (Man weis ja nicht wie riesig diese Liste wird)
+
 ## Reflektion
 
 - User können sich **erfolgreich** Registrieren und Einloggen

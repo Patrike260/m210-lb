@@ -6,6 +6,13 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s, color 0.3s; /* Weiche Übergänge */
+}
+
+/* Dark Mode */
+body.dark-mode {
+  background-color: #121212; /* Dunkler Hintergrund */
+  color: #ffffff; /* Helle Schriftfarbe */
 }
 
 #root {
@@ -16,11 +23,18 @@ body {
   background: #ffffff; /* Weißer Container */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Leichter Schatten */
   border-radius: 10px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode #root {
+  background: #1e1e1e; /* Dunkler Container */
+  box-shadow: none; /* Kein Schatten im Dark Mode */
 }
 
 form {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap; /* Umbruch bei kleiner Breite */
   gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
@@ -34,6 +48,15 @@ button {
   border-radius: 4px;
   box-sizing: border-box;
   height: 40px; /* Einheitliche Höhe */
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode button {
+  background-color: #333; /* Dunkle Eingabefelder */
+  color: #fff;
+  border-color: #555;
 }
 
 input:focus,
@@ -42,6 +65,13 @@ button:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode button:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 4px rgba(128, 189, 255, 0.5);
 }
 
 button {
@@ -57,10 +87,19 @@ button:hover {
   background-color: #0056b3;
 }
 
+body.dark-mode button {
+  background-color: #0056b3;
+}
+
+body.dark-mode button:hover {
+  background-color: #003a80;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
+  font-size: 0.9rem; /* Kleinere Schriftgröße für bessere Darstellung */
 }
 
 table th,
@@ -68,21 +107,65 @@ table td {
   border: 1px solid #ccc;
   padding: 0.5rem;
   text-align: left;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 table th {
   background-color: #f1f1f1;
 }
 
+body.dark-mode table th {
+  background-color: #333; /* Dunklere Kopfzeile im Dark Mode */
+}
+
+body.dark-mode table td {
+  background-color: #1e1e1e; /* Dunklere Zellen im Dark Mode */
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+    box-shadow: none; /* Weniger Schatten auf mobilen Geräten */
+  }
+
   form {
-    flex-direction: column;
+    flex-direction: column; /* Eingabefelder untereinander */
     gap: 0.75rem;
   }
 
   input,
   select,
   button {
-    width: 100%;
+    width: 100%; /* Volle Breite für bessere Lesbarkeit */
+  }
+
+  table {
+    font-size: 0.85rem; /* Noch kleinere Schriftgröße */
+  }
+
+  table th,
+  table td {
+    padding: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5rem; /* Kleinere Schriftgröße für Titel */
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  table {
+    display: block; /* Tabelle wird scrollbar */
+    overflow-x: auto;
+  }
+
+  table th,
+  table td {
+    white-space: nowrap; /* Zeilenumbrüche in Tabellen verhindern */
   }
 }
